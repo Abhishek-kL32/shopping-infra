@@ -1,5 +1,5 @@
 ---
-name: "dev infra destroy "
+name: "dev infra deploy"
 
 on:
   workflow_dispatch:
@@ -45,9 +45,19 @@ jobs:
              -backend-config="region=${{ secrets.REGION_S3 }}" \
              -backend-config="access_key=${{ secrets.DEV_ACCESS_KEY }}" \
              -backend-config="secret_key=${{ secrets.DEV_SECRET_KEY }}"
+      - name: "terraform validate"
+        run: terraform validate 
+        
+      - name: "terraform format template"
+        run: terraform fmt
 
-      - name: "Terraform destroy"
+      - name: "Terraform plan"
         run: |
-           terraform destroy -auto-approve -var-file=dev.tfvars \
+           terraform plan -var-file=dev.tfvars \
+             -var "instance_type=${{ github.event.inputs.instance_type }}" \
+             -var "instance_ami=${{ github.event.inputs.instance_ami }}"
+      - name: "Terraform apply"
+        run: |
+           terraform apply -auto-approve -var-file=dev.tfvars \
              -var "instance_type=${{ github.event.inputs.instance_type }}" \
              -var "instance_ami=${{ github.event.inputs.instance_ami }}"
